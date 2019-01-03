@@ -9,6 +9,12 @@ class Point
     def to_s
         return "(#{@x}, #{@y})"
     end
+    def == (other)
+        return @x == other.x && @y == other.y
+    end
+    def eql? (other)
+        return self == other
+    end
 end
 
 class VerLine
@@ -32,5 +38,29 @@ class HorLine
         else
             @x1, @x2 = x2, x1
         end
+    end
+end
+
+class Line
+    attr_reader :from, :to
+    def initialize(from, to)
+        @from = from
+        @to = to
+    end
+    def to_s
+        return "#{@from} - #{@to}"
+    end
+    def ==(other)
+        return (@from == other.from && @to == other.to) ||
+               (@from == other.to && @to == other.from)
+    end
+    def eql?(other)
+        return self == other
+    end
+    def length
+        return Math.sqrt((to.x - from.x)**2 + (to.y - from.y)**2)
+    end
+    def <=>(other)
+        return self.length <=> other.length
     end
 end
