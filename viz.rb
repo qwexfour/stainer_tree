@@ -56,11 +56,17 @@ class Grid
         print_seg @m2
         puts "m3:"
         print_seg @m3
+        puts "all:"
+        print_all
     end
     def print_point(arr)
+        if arr.empty?
+            puts "No info"
+            return
+        end
         _mtx = Array.new(@rows) { |e| e = Array.new(@columns, ".") }
         arr.each do |point|
-            _mtx[point.x][point.y] = "@"
+            _mtx[point.y][point.x] = "@"
         end
         hor_idx()
         _idx = 0
@@ -73,22 +79,56 @@ class Grid
         end
     end
     def print_seg(arr)
+        if arr.empty?
+            puts "No info"
+            return
+        end
         _mtx = Array.new(@rows) { |e| e = Array.new(@columns, ".") }
         if arr.first.is_a?(HorLine)
             arr.each do |seg|
                 for x in seg.x1..seg.x2
-                    _mtx[x][seg.y] = "@"
+                    _mtx[seg.y][x] = "@"
                 end
             end
         elsif arr.first.is_a?(VerLine)
             arr.each do |seg|
                 for y in seg.y1..seg.y2
-                    _mtx[seg.x][y] = "@"
+                    _mtx[y][seg.x] = "@"
                 end
             end
         else
             abort("Unknown segment type")
         end
+        hor_idx()
+        _idx = 0
+        _mtx.each do |row|
+            row.each do |e|
+                print e
+            end
+            print _idx
+            _idx += 1
+            puts
+        end
+    end
+    def print_all
+        if @pins.empty? || @m2.empty? || @m3.empty?
+            puts "No info"
+        end
+        _mtx = Array.new(@rows) { |e| e = Array.new(@columns, " ") }
+        @m2.each do |seg|
+            for x in seg.x1..seg.x2
+                _mtx[seg.y][x] = "-"
+            end
+        end
+        @m3.each do |seg|
+            for y in seg.y1..seg.y2
+                _mtx[y][seg.x] = "|"
+            end
+        end
+        @pins.each do |point|
+            _mtx[point.y][point.x] = "@"
+        end
+#TODO to seperate function
         hor_idx()
         _idx = 0
         _mtx.each do |row|
