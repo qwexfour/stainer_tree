@@ -3,7 +3,7 @@
 require "rexml/document"
 require_relative "point"
 
-class Grid
+class GridReader
     attr_reader :rows, :columns, :pins
     def initialize
         @pins = Array.new
@@ -61,13 +61,101 @@ class Steiner
         end
         return _mst
     end
+    def weight(edges)
+        _sum = 0
+        edges.each { |e| _sum += e.length }
+        return _sum
+    end
+    def steiner
+        _cur_added_points = Array.new
+        _cur_mst = mst(@pins + _cur_added_points)
+        _cur_weight = weight(_cur_mst)
+        get_steiner_points().each do |steiner_point|
+            _new_added_points = _cur_added_points + [steiner_point]
+            _new_mst = mst(@pins + _new_added_points)
+            _new_weight = weight(_new_mst)
+            if _new_weight < _cur_weight
+                # hash point => number of outcomming edges
+                _cnt_edges = Hash.new(0)
+                _new_mst.each do |edge|
+                    _cnt_edges[edge.from] += 1
+                    _cnt_edges[edge.to] += 1
+                end
+                # elim points with two outcomming edges
+                _to_del = Array.new
+                _new_added_points.each do |point|
+                    if _cnt_edges[point] <= 2
+                        _to_del.push(point)
+                    end
+                end
+                _cur_added_points = _new_added_points - _to_del
+            end
+        end
+        return mst(@pins + _cur_added_points)
+    end
 end
 
-grid = Grid.new
+class GridWriter
+    def initialize(grid, tree_edges)
+        @rows = grid.rows
+        @columns = grid.columns
+        @pins = grid.pins
+        @tree_edges = tree_edges
+        @m2_m3 = Array.new
+        @m2 = Array.new
+        @m3 = Array.new
+    end
+    def fill_data
+        @tree_edges.each do |edge|
+            # horizontal
+            if edge.from.y == edge.to.y
+                @m2.push(HorLine.new(edge.from.x, edge.to.x, edge.to.y))
+            # vertical
+            elsif edge.from.x == edge.to.x
+                @m3.push(VerLine.new(edge.from.x, edge.from.y, edge.to.y))
+                @m2_m3.push(edge.from)
+                @m2_m3.push(edge.to)
+            # both
+            else
+                @m2.push(HorLine.new(edge.from.x, edge.to.x, edge.to.y))
+                @m3.push(VerLine.new(edge.from.x, edge.from.y, edge.to.y))
+                @m2_m3.push(edge.from)
+                #@m2_m3.push(edge.to) wrong
+                @m2_m3.push(Point.new(edge.from.x, edge.to.y))
+            end
+            @m2.uniq!
+            @m3.uniq!
+        end
+    end
+    def putxml(filename)
+        _xml = REXML::Document.new
+        _root = _xml.add_element("root")
+        _root.add_element("grid", {"min_x" => 0, "max_x" => @columns, "min_y" => 0, "max_y" => @rows })
+        _net = _root.add_element("net")
+        @pins.each do |pin|
+            _net.add_element("point", {"layer" => "pins", "type" => "pin", "x" => pin.x, "y" => pin.y})
+            _net.add_element("point", {"layer" => "pins_m2", "type" => "via", "x" => pin.x, "y" => pin.y})
+        end
+        @m2_m3.each do |via|
+            _net.add_element("point", {"layer" => "m2_m3", "type" => "via", "x" => via.x, "y" => via.y})
+        end
+        @m2.each do |hor_line|
+            _net.add_element("segment", {"layer" => "m2", "x1" => hor_line.x1, "x2" => hor_line.x2,
+                                         "y1" => hor_line.y, "y2" => hor_line.y})
+        end
+        @m3.each do |ver_line|
+            _net.add_element("segment", {"layer" => "m3", "x1" => ver_line.x, "x2" => ver_line.x,
+                                         "y1" => ver_line.y1, "y2" => ver_line.y2})
+        end
+        File.open(filename, "w") do |file|
+            file.puts _xml
+        end
+    end
+end
+
+grid = GridReader.new
 grid.getxml("my.xml")
-grid.dump()
-puts "Steiner points"
 steiner = Steiner.new(grid)
-puts steiner.get_steiner_points
-puts "MST"
-puts steiner.mst
+out = GridWriter.new(grid, steiner.steiner)
+out.fill_data
+out.putxml("my_out.xml")

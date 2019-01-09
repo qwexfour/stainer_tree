@@ -36,7 +36,7 @@ class Grid
                     assert(seg.attributes["y1"] == seg.attributes["y2"], "m2 is for horizontal segments")
                     @m2.push(HorLine.new(seg.attributes["x1"].to_i, seg.attributes["x2"].to_i, seg.attributes["y1"].to_i))
                 elsif seg.attributes["layer"] == "m3"
-                    assert(seg.attributes["x1"] == seg.attributes["x2"], "m2 is for vertical segments")
+                    assert(seg.attributes["x1"] == seg.attributes["x2"], "m3 is for vertical segments")
                     @m3.push(VerLine.new(seg.attributes["x1"].to_i, seg.attributes["y1"].to_i, seg.attributes["y2"].to_i))
                 else
                     abort("Unsupported layer")
@@ -141,10 +141,13 @@ class Grid
         end
     end
     def hor_idx
-        (0...@columns).each { |e| print e / 10}
-        puts
-        (0...@columns).each { |e| print e % 10}
-        puts
+        # awful, I know
+        if @columns < 100
+            (0...@columns).each { |e| print e / 10}
+            puts
+            (0...@columns).each { |e| print e % 10}
+            puts
+        end
     end
 end
 

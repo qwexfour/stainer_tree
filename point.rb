@@ -58,7 +58,7 @@ class Line
         return self == other
     end
     def length
-        return Math.sqrt((to.x - from.x)**2 + (to.y - from.y)**2)
+        return (to.x - from.x).abs + (to.y - from.y).abs
     end
     def <=>(other)
         return self.length <=> other.length
