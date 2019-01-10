@@ -27,6 +27,12 @@ class VerLine
             @y1, @y2 = y2, y1
         end
     end
+    def from
+        return Point.new(x, y1)
+    end
+    def to
+        return Point.new(x, y2)
+    end
 end
 
 class HorLine
@@ -38,6 +44,12 @@ class HorLine
         else
             @x1, @x2 = x2, x1
         end
+    end
+    def from
+        return Point.new(x1, y)
+    end
+    def to
+        return Point.new(x2, y)
     end
 end
 

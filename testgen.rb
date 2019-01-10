@@ -15,7 +15,7 @@ class Generator
     end
 
     def dump
-        puts "[#{@rows}x#{@columns}]"
+        puts "y range is #{@rows}, x range is #{@columns}"
         @mtx.each do |row|
             row.each do |e|
                 print e
@@ -32,7 +32,7 @@ class Generator
                 _column = @rand.rand(@columns)
             end while @mtx[_row][_column] == 1
             @mtx[_row][_column] = 1
-            @pins.push(Point.new(_row, _column))
+            @pins.push(Point.new(_column, _row))
         end
     end
     def putxml(filename)

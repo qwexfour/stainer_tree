@@ -45,7 +45,7 @@ class Grid
         end
     end
     def dump
-        puts "[#{@rows}x#{@columns}]"
+        puts "There are #{@rows} rows (y range) and #{@columns} columns (x range)"
         puts "pins:"
         print_point @pins
         puts "pins_m2:"
@@ -141,8 +141,8 @@ class Grid
         end
     end
     def hor_idx
-        # awful, I know
-        if @columns < 100
+        # awful, I know (though you've seen the rest of the code)
+        if @columns <= 100
             (0...@columns).each { |e| print e / 10}
             puts
             (0...@columns).each { |e| print e % 10}

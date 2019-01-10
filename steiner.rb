@@ -17,7 +17,9 @@ class GridReader
             @columns = _grid.attributes["max_x"].to_i - _grid.attributes["min_x"].to_i
             _net = _root.elements["net"]
             _net.children.each { |pin|
-                @pins.push(Point.new(pin.attributes["x"].to_i, pin.attributes["y"].to_i))
+                if pin.is_a?(REXML::Element)
+                    @pins.push(Point.new(pin.attributes["x"].to_i, pin.attributes["y"].to_i))
+                end
             }
         end
     end
@@ -126,6 +128,14 @@ class GridWriter
             @m2.uniq!
             @m3.uniq!
         end
+        add_degenerate_segments
+    end
+    def add_degenerate_segments
+        @m2_m3.each do |via|
+            if !@m2.any? { |seg| seg.from == via || seg.to == via }
+                @m2.push(HorLine.new(via.x, via.x, via.y))
+            end
+        end
     end
     def putxml(filename)
         _xml = REXML::Document.new
@@ -153,9 +163,14 @@ class GridWriter
     end
 end
 
+if (ARGV.length < 1)
+    puts "Please pass input file name as parameter"
+    exit
+end
+filename = ARGV[0]
 grid = GridReader.new
-grid.getxml("my.xml")
+grid.getxml(filename)
 steiner = Steiner.new(grid)
 out = GridWriter.new(grid, steiner.steiner)
 out.fill_data
-out.putxml("my_out.xml")
+out.putxml(filename.chomp(".xml") + "_out.xml")
