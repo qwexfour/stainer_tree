@@ -127,6 +127,7 @@ class GridWriter
             end
             @m2.uniq!
             @m3.uniq!
+            @m2_m3.uniq!
         end
         add_degenerate_segments
     end
